@@ -11,10 +11,9 @@ class StochasticBandit:
     def __init__(self, means: List[float], sigma: float = 0.1):
         self.n_arms = len(means)
         self.arm_means = means
-        self.sigma = sigma
 
     def observe(self, arm: int) -> float:
-        return np.random.randn(1) * self.sigma + self.arm_means[arm]
+        return np.random.binomial(1, self.arm_means[arm])
 
 
 class UniformSampling:
