@@ -40,22 +40,29 @@ if __name__ == "__main__":
 
         bandit = StochasticBandit(means)
         stopping_times = [100, 200, 500]
-        n_trials = 1000
+        n_trials = 5000
 
-        uniform = [defaultdict(int) for _ in range(len(stopping_times))]
-        successive_rejects = [defaultdict(int) for _ in range(len(stopping_times))]
+        uniform = defaultdict(lambda: defaultdict(int))
+        successive_rejects = defaultdict(lambda: defaultdict(int))
 
-        for i, stopping_time in enumerate(stopping_times):
+        for tau in stopping_times:
             for _ in range(n_trials):
-                uniform[i][UniformSampling(stopping_time, bandit).play()] += 1
-                successive_rejects[i][
-                    SuccessiveRejects(stopping_time, bandit).play()
-                ] += 1
+                uniform[tau][UniformSampling(tau, bandit).play()] += 1
+                successive_rejects[tau][SuccessiveRejects(tau, bandit).play()] += 1
 
-        print("Uniform sampling")
-        for uni in uniform:
-            print(json.dumps(dict(uni), indent=4))
+        print(" --- Uniform sampling ---\n")
+        for tau, uni in uniform.items():
+            print(f"T = {tau}", json.dumps(dict(uni), indent=4))
 
-        print("\nSuccessive rejects")
-        for suc in successive_rejects:
-            print(json.dumps(dict(suc), indent=4))
+        print("\n\n --- Successive rejects ---\n")
+        for tau, suc in successive_rejects.items():
+            print(f"T = {tau}", json.dumps(dict(suc), indent=4))
+
+        print(
+            f"\nSuccess rate of the uniform sampling:   "
+            f"{', '.join(f'T = {tau}: {uniform[tau][0] / n_trials * 100:>5.2f}%' for tau in stopping_times)}"
+        )
+        print(
+            f"Success rate of the successive rejects: "
+            f"{', '.join(f'T = {tau}: {successive_rejects[tau][0] / n_trials * 100:>5.2f}%' for tau in stopping_times)}"
+        )
