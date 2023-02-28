@@ -38,14 +38,14 @@ class SuccessiveRejects:
         self.logK = 0.5 + sum(1 / k for k in range(2, env.n_arms + 1))
 
     def play(self, verbose: bool = False) -> int:
-        remaining_arms = list(range(self.n_arms))
-        n = 0
-        for j in range(1, self.n_arms):
-            if verbose:
-                print(
-                    f"Remaining arms: {', '.join(f'{str(arm):>5}' for arm in remaining_arms)}"
-                )
+        if verbose:
+            print(" --- Beginning of a simulation ---\n")
 
+        remaining_arms = list(range(self.n_arms))
+        rewards = np.zeros(self.n_arms)
+        n = 0
+
+        for j in range(1, self.n_arms):
             next_n = int(
                 np.ceil(
                     1
@@ -54,21 +54,44 @@ class SuccessiveRejects:
                     / (self.n_arms + 1 - j)
                 )
             )
-            rewards = np.zeros(len(remaining_arms))
-            for i, arm in enumerate(remaining_arms):
+
+            if verbose:
+                print(f"Number of rounds per arm: {next_n - n}")
+                print(
+                    f"Remaining arms: {', '.join(f'{str(arm):>5}' for arm in remaining_arms)}"
+                )
+
+            for arm in remaining_arms:
                 for t in range(next_n - n):
-                    rewards[i] += self.env.observe(arm)
+                    rewards[arm] += self.env.observe(arm)
 
             if verbose:
                 print(
-                    f"Arm scores:     {', '.join(f'{str(round(r, 2)):>5}' for r in rewards)}"
+                    f"Arm scores:     "
+                    f"{', '.join(f'{str(round(r, 2)):>5}' for arm, r in enumerate(rewards) if arm in remaining_arms)}"
                 )
 
-            rejected_arm = np.random.choice(np.where(rewards == rewards.min())[0])
+            argmin = np.where(rewards[remaining_arms] == rewards[remaining_arms].min())[
+                0
+            ]
+            if verbose:
+                print(
+                    f"Arms with the lowest score: {', '.join(str(remaining_arms[arm]) for arm in argmin)}"
+                )
+            # choosing an arm randomly among the ones with the lowest score
+            rejected_arm = np.random.choice(argmin)
+            if verbose:
+                print(f"Rejecting arm {remaining_arms[rejected_arm]}.\n")
+
             remaining_arms.pop(rejected_arm)
             n = next_n
 
-            if verbose:
-                print(f"Rejecting arm {remaining_arms[rejected_arm]}.")
+        assert len(remaining_arms) == 1, (
+            "There is more than 1 arm left"
+            if len(remaining_arms) > 1
+            else "There is no arm left"
+        )
+        if verbose:
+            print(f"Selecting arm {remaining_arms[0]}.\n")
 
         return remaining_arms.pop()
