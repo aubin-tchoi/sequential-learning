@@ -22,12 +22,12 @@ class BaseOGD(ABC):
 
         return direction / np.linalg.norm(direction)
 
-    def sample_loss(self) -> Tuple[np.ndarray, np.ndarray]:
+    def sample_loss(self, sigma: float = 0.1) -> Tuple[np.ndarray, np.ndarray]:
         """
         Sample elements that constitute a loss.
         """
         x_t = np.random.randn(self.dim)
-        epsilon_t = np.random.randn(1) * 0.1
+        epsilon_t = np.random.randn(1) * sigma
         y_t = self.theta_star @ x_t + epsilon_t
 
         return x_t, y_t
@@ -72,11 +72,11 @@ class BaseOGD(ABC):
         return self.update_rule(theta_hat, direction, x_t, y_t)
 
     def play_full_horizon(self, horizon: int) -> np.ndarray:
-        theta_hat, losses = np.zeros(self.dim), np.zeros(horizon)
+        theta_hat, regret = np.zeros(self.dim), np.zeros(horizon)
         for t in range(horizon):
-            theta_hat, losses[t] = self.play_one_episode(theta_hat)
+            theta_hat, regret[t] = self.play_one_episode(theta_hat)
 
-        return losses.cumsum()
+        return regret.cumsum()
 
 
 class OGDWithoutGradient(BaseOGD):
@@ -87,6 +87,13 @@ class OGDWithoutGradient(BaseOGD):
         x_t: np.ndarray,
         y_t: np.ndarray,
     ) -> Tuple[np.ndarray, float]:
+        """
+        Updates theta_hat according to a sample of loss.
+
+        Returns:
+            theta_hat: new position for theta_hat
+            regret: loss observed discounted by the loss that would have been observed by theta star.
+        """
         theta_t = theta_hat + self.delta * direction
         loss = self.compute_loss(theta_t, x_t, y_t)
 
@@ -106,6 +113,13 @@ class OGDWithGradient(BaseOGD):
         x_t: np.ndarray,
         y_t: np.ndarray,
     ) -> Tuple[np.ndarray, float]:
+        """
+        Updates theta_hat according to a sample of loss.
+
+        Returns:
+            theta_hat: new position for theta_hat
+            regret: loss observed discounted by the loss that would have been observed by theta star.
+        """
         loss = self.compute_loss(theta_hat, x_t, y_t)
         return (
             self.euclidian_projection(

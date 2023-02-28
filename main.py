@@ -29,14 +29,15 @@ if __name__ == "__main__":
 
         fig, (ax1, ax2) = plt.subplots(2, figsize=(16, 12))
 
-        # FIXME: this is not the regret because we did not discount
-        ogd_wo_grad = OGDWithoutGradient(dim=d, delta=delta, eta=eta)
-        ogd_wo_grad_losses = ogd_wo_grad.play_full_horizon(horizon=T)
-        ax1.plot(ogd_wo_grad_losses)
+        ogd_wo_grad_regret = OGDWithoutGradient(
+            dim=d, delta=delta, eta=eta
+        ).play_full_horizon(horizon=T)
+        ax1.plot(ogd_wo_grad_regret)
 
-        ogd_w_grad = OGDWithGradient(dim=d, delta=delta, eta=eta)
-        ogd_w_grad_losses = ogd_w_grad.play_full_horizon(horizon=T)
-        ax2.plot(ogd_w_grad_losses)
+        ogd_w_grad_regret = OGDWithGradient(
+            dim=d, delta=delta, eta=eta
+        ).play_full_horizon(horizon=T)
+        ax2.plot(ogd_w_grad_regret)
 
         plt.show()
 
