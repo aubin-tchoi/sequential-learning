@@ -3,7 +3,7 @@ Algorithms for online zero-order convex optimization.
 We assume the decision set to be convex, the loss functions to be convex and G-Lipschitz.
 """
 from abc import ABC, abstractmethod
-from typing import Tuple, List
+from typing import Tuple
 
 import numpy as np
 
@@ -71,13 +71,12 @@ class BaseOGD(ABC):
 
         return self.update_rule(theta_hat, direction, x_t, y_t)
 
-    def play_full_horizon(self, horizon: int) -> List[float]:
-        theta_hat, cumulative_regret = np.zeros(self.dim), [0.0]
+    def play_full_horizon(self, horizon: int) -> np.ndarray:
+        theta_hat, losses = np.zeros(self.dim), np.zeros(horizon)
         for t in range(horizon):
-            theta_hat, regret = self.play_one_episode(theta_hat)
-            cumulative_regret.append(regret + cumulative_regret[-1])
+            theta_hat, losses[t] = self.play_one_episode(theta_hat)
 
-        return cumulative_regret
+        return losses.cumsum()
 
 
 class OGDWithoutGradient(BaseOGD):

@@ -28,12 +28,12 @@ class BaseAlgo(ABC):
         ).min() / 2 > np.log(1 / self.confidence_level) + 3 * np.log(1 + np.log(time))
 
     @abstractmethod
-    def play(self) -> Tuple[int, int]:
+    def __call__(self) -> Tuple[int, int]:
         pass
 
 
 class UCBFixedConfidence(BaseAlgo, UCB):
-    def play(self) -> Tuple[int, int]:
+    def __call__(self) -> Tuple[int, int]:
         empirical_means, n_visits, time = self.pull_each_arm_once()
 
         while not self.stopping_rule(empirical_means, n_visits, time):
@@ -44,7 +44,7 @@ class UCBFixedConfidence(BaseAlgo, UCB):
 
 
 class UniformSamplingFixedConfidence(BaseAlgo, UCB):
-    def play(self) -> Tuple[int, int]:
+    def __call__(self) -> Tuple[int, int]:
         empirical_means, n_visits, time = self.pull_each_arm_once()
 
         while not self.stopping_rule(empirical_means, n_visits, time):
@@ -73,7 +73,7 @@ class TopTwo(BaseAlgo):
         if leader_selection.upper() not in ["TTUCB", "EB-TC"]:
             raise ValueError("Incorrect value for leader selection rule.")
 
-    def play(self) -> Tuple[int, int]:
+    def __call__(self) -> Tuple[int, int]:
         empirical_means = np.zeros(self.n_arms)
 
         # pulling each arm once

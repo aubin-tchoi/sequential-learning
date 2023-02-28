@@ -8,7 +8,7 @@ class UniformSamplingFixedBudget:
         self.env = env
         self.n_rounds = stopping_time // env.n_arms
 
-    def play(self) -> int:
+    def __call__(self) -> int:
         rewards = np.zeros(self.env.n_arms)
         for arm in range(self.env.n_arms):
             for t in range(self.n_rounds):
@@ -24,7 +24,7 @@ class SuccessiveRejects:
         self.n_arms = self.env.n_arms
         self.logK = 0.5 + sum(1 / k for k in range(2, env.n_arms + 1))
 
-    def play(self, verbose: bool = False) -> int:
+    def __call__(self, verbose: bool = False) -> int:
         if verbose:
             print(" --- Beginning of a simulation ---\n")
 

@@ -53,8 +53,8 @@ if __name__ == "__main__":
         timer = checkpoint()
         for tau in stopping_times:
             for _ in range(n_trials):
-                uniform[tau][UniformSamplingFixedBudget(tau, bandit).play()] += 1
-                successive_rejects[tau][SuccessiveRejects(tau, bandit).play()] += 1
+                uniform[tau][UniformSamplingFixedBudget(tau, bandit)()] += 1
+                successive_rejects[tau][SuccessiveRejects(tau, bandit)()] += 1
             timer(f"Time spent on horizon {tau}")
 
         print(" --- Uniform sampling ---\n")
@@ -87,7 +87,7 @@ if __name__ == "__main__":
         bandit = StochasticBandit(means)
 
         for _ in range(n_trials):
-            regret += UCB(bandit).play(horizon)
+            regret += UCB(bandit)(horizon)
         regret /= n_trials
 
         plt.plot(regret)

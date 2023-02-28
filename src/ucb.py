@@ -34,7 +34,7 @@ class UCB:
 
         return reward
 
-    def play(self, horizon: int) -> np.ndarray:
+    def __call__(self, horizon: int) -> np.ndarray:
         empirical_means, n_visits, time = self.pull_each_arm_once()
         rewards = np.zeros(horizon)
         rewards[: self.n_arms] = empirical_means
