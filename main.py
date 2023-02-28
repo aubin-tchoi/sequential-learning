@@ -2,21 +2,25 @@ import json
 from collections import defaultdict
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 from src import (
     OGDWithoutGradient,
     OGDWithGradient,
     StochasticBandit,
     SuccessiveRejects,
-    UniformSampling,
+    UniformSamplingFixedBudget,
     checkpoint,
+    UCB,
 )
 
 # TODO: add argparse
+# TODO: add legends to plots
 
 if __name__ == "__main__":
     run_ogd = False
-    run_bandit = True
+    run_fixed_budget = False
+    run_fixed_confidence = True
 
     if run_ogd:
         d, T = 2, 1000
@@ -35,7 +39,7 @@ if __name__ == "__main__":
 
         plt.show()
 
-    if run_bandit:
+    if run_fixed_budget:
         means = [0.4 for _ in range(19)]
         means.insert(0, 0.5)
 
@@ -49,7 +53,7 @@ if __name__ == "__main__":
         timer = checkpoint()
         for tau in stopping_times:
             for _ in range(n_trials):
-                uniform[tau][UniformSampling(tau, bandit).play()] += 1
+                uniform[tau][UniformSamplingFixedBudget(tau, bandit).play()] += 1
                 successive_rejects[tau][SuccessiveRejects(tau, bandit).play()] += 1
             timer(f"Time spent on horizon {tau}")
 
@@ -69,3 +73,22 @@ if __name__ == "__main__":
             f"Success rate of the successive rejects: "
             f"{', '.join(f'T = {tau}: {successive_rejects[tau][0] / n_trials * 100:>5.2f}%' for tau in stopping_times)}"
         )
+
+    if run_fixed_confidence:
+        means = [0.5, 0.4, 0.4]
+        for _ in range(7):
+            means.append(0.3)
+        assert len(means) == 10, "Incorrect number of arms"
+
+        n_trials = 100
+        horizon = 1000
+
+        regret = np.zeros(horizon)
+        bandit = StochasticBandit(means)
+
+        for _ in range(n_trials):
+            regret += UCB(bandit).play(horizon)
+        regret /= n_trials
+
+        plt.plot(regret)
+        plt.show()
