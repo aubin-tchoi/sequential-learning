@@ -9,6 +9,7 @@ from src import (
     StochasticBandit,
     SuccessiveRejects,
     UniformSampling,
+    checkpoint,
 )
 
 # TODO: add argparse
@@ -45,10 +46,12 @@ if __name__ == "__main__":
         uniform = defaultdict(lambda: defaultdict(int))
         successive_rejects = defaultdict(lambda: defaultdict(int))
 
+        timer = checkpoint()
         for tau in stopping_times:
             for _ in range(n_trials):
                 uniform[tau][UniformSampling(tau, bandit).play()] += 1
                 successive_rejects[tau][SuccessiveRejects(tau, bandit).play()] += 1
+            timer(f"Time spent on horizon {tau}")
 
         print(" --- Uniform sampling ---\n")
         for tau, uni in uniform.items():
