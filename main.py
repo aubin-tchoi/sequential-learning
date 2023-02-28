@@ -42,6 +42,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Skips the execution of the two fixed confidence algorithms",
     )
+    parser.add_argument(
+        "--log_plots",
+        action="store_true",
+        help="Plots the regret in log log scale",
+    )
 
     return parser.parse_args()
 
@@ -58,20 +63,64 @@ if __name__ == "__main__":
             * diameter
         )
 
+        n_trials = 500
+        wo_grad, w_grad = np.zeros((n_trials, horizon)), np.zeros((n_trials, horizon))
+        for trial in range(n_trials):
+            wo_grad[trial] = OGDWithoutGradient(
+                dim=dim, delta=delta, eta=eta
+            ).play_full_horizon(horizon=horizon)
+            w_grad[trial] = OGDWithGradient(
+                dim=dim, delta=delta, eta=eta
+            ).play_full_horizon(horizon=horizon)
+
+        wo_grad_mean, wo_grad_std = wo_grad.mean(axis=0), wo_grad.std(axis=0)
+        w_grad_mean, w_grad_std = w_grad.mean(axis=0), w_grad.std(axis=0)
+
         plt.figure(figsize=(12, 12))
-
-        ogd_wo_grad_regret = OGDWithoutGradient(
-            dim=dim, delta=delta, eta=eta
-        ).play_full_horizon(horizon=horizon)
-        plt.plot(ogd_wo_grad_regret, label="OGD without gradient")
-
-        ogd_w_grad_regret = OGDWithGradient(
-            dim=dim, delta=delta, eta=eta
-        ).play_full_horizon(horizon=horizon)
-        plt.plot(ogd_w_grad_regret, label="OGD with gradient")
-
+        plt.plot(wo_grad_mean, label="OGD without gradient")
+        plt.fill_between(
+            np.arange(horizon), wo_grad_mean - wo_grad_std, wo_grad_mean + wo_grad_std, alpha=0.5
+        )
+        plt.plot(w_grad_mean, label="OGD with gradient")
+        plt.fill_between(
+            np.arange(horizon), w_grad_mean - w_grad_std, w_grad_mean + w_grad_std, alpha=0.5
+        )
+        if args.log_plots:
+            plt.xscale("log")
+            plt.yscale("log")
         plt.legend()
         plt.show()
+
+        dims = np.arange(10)
+        n_trials = 50
+        wo_grad, w_grad = np.zeros((n_trials, dims.shape[0])), np.zeros((n_trials, dims.shape[0]))
+
+        for trial in range(n_trials):
+            for i, dim in enumerate(dims):
+                wo_grad[trial][i] = OGDWithoutGradient(
+                    dim=dim, delta=delta, eta=eta
+                ).play_full_horizon(horizon=horizon)[-1]
+                w_grad[trial][i] = OGDWithGradient(
+                    dim=dim, delta=delta, eta=eta
+                ).play_full_horizon(horizon=horizon)[-1]
+
+        wo_grad_mean, wo_grad_std = wo_grad.mean(axis=0), wo_grad.std(axis=0)
+        w_grad_mean, w_grad_std = w_grad.mean(axis=0), w_grad.std(axis=0)
+
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8))
+        ax1.plot(wo_grad_mean, label="OGD without gradient")
+        ax1.fill_between(
+            dims, wo_grad_mean - wo_grad_std, wo_grad_mean + wo_grad_std, alpha=0.5
+        )
+        ax2.plot(w_grad_mean, label="OGD with gradient")
+        ax2.fill_between(
+            dims, w_grad_mean - w_grad_std, w_grad_mean + w_grad_std, alpha=0.5
+        )
+
+        ax1.legend()
+        ax2.legend()
+        plt.show()
+
 
     if not args.skip_fixed_budget:
         means = [0.4 for _ in range(19)]
