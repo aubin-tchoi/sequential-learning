@@ -1,3 +1,4 @@
+import argparse
 import json
 from collections import defaultdict
 
@@ -14,34 +15,65 @@ from src import (
     UCB,
 )
 
-# TODO: add argparse
-# TODO: add legends to plots
+
+def parse_args() -> argparse.Namespace:
+    """
+    Parses the command line arguments and produces the help message.
+    """
+    parser = argparse.ArgumentParser(description="Surface reconstruction")
+
+    parser.add_argument(
+        "--skip_ogd",
+        action="store_true",
+        help="Skips the execution of the two OGD algorithms",
+    )
+    parser.add_argument(
+        "--skip_fixed_budget",
+        action="store_true",
+        help="Skips the execution of the fixed budget algorithms",
+    )
+    parser.add_argument(
+        "--skip_ucb",
+        action="store_true",
+        help="Skips the execution of the UCB algorithm",
+    )
+    parser.add_argument(
+        "--skip_fixed_confidence",
+        action="store_true",
+        help="Skips the execution of the two fixed confidence algorithms",
+    )
+
+    return parser.parse_args()
+
 
 if __name__ == "__main__":
-    run_ogd = False
-    run_fixed_budget = False
-    run_fixed_confidence = True
+    args = parse_args()
 
-    if run_ogd:
-        d, T = 2, 1000
-        delta = 2 * T / d
-        eta = 4 * T / d**2
+    if not args.skip_ogd:
+        dim, horizon, lipschitz_constant, diameter = 2, 1000, 5, 2
+        delta = horizon ** (-1 / 4) * np.sqrt(dim * diameter / (3 * lipschitz_constant))
+        eta = (
+            horizon ** (-3 / 4)
+            * np.sqrt(dim / (3 * lipschitz_constant * dim))
+            * diameter
+        )
 
-        fig, (ax1, ax2) = plt.subplots(2, figsize=(16, 12))
+        plt.figure(figsize=(12, 12))
 
         ogd_wo_grad_regret = OGDWithoutGradient(
-            dim=d, delta=delta, eta=eta
-        ).play_full_horizon(horizon=T)
-        ax1.plot(ogd_wo_grad_regret)
+            dim=dim, delta=delta, eta=eta
+        ).play_full_horizon(horizon=horizon)
+        plt.plot(ogd_wo_grad_regret, label="OGD without gradient")
 
         ogd_w_grad_regret = OGDWithGradient(
-            dim=d, delta=delta, eta=eta
-        ).play_full_horizon(horizon=T)
-        ax2.plot(ogd_w_grad_regret)
+            dim=dim, delta=delta, eta=eta
+        ).play_full_horizon(horizon=horizon)
+        plt.plot(ogd_w_grad_regret, label="OGD with gradient")
 
+        plt.legend()
         plt.show()
 
-    if run_fixed_budget:
+    if not args.skip_fixed_budget:
         means = [0.4 for _ in range(19)]
         means.insert(0, 0.5)
 
@@ -76,7 +108,7 @@ if __name__ == "__main__":
             f"{', '.join(f'T = {tau}: {successive_rejects[tau][0] / n_trials * 100:>5.2f}%' for tau in stopping_times)}"
         )
 
-    if run_fixed_confidence:
+    if not args.skip_ucb:
         means = [0.5, 0.4, 0.4]
         for _ in range(7):
             means.append(0.3)
