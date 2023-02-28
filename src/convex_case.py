@@ -9,10 +9,10 @@ import numpy as np
 
 
 class BaseOGD(ABC):
-    def __init__(self, dim: int, delta: float, eta: float, radius: float = 1.0):
+    def __init__(self, dim: int, delta: float, eta: float):
         self.dim = dim
         self.theta_star = 1 / (np.arange(dim) + 1) / 2
-        self.radius, self.delta, self.eta = radius, delta, eta
+        self.delta, self.eta = delta, eta
 
     def sample_direction(self) -> np.ndarray:
         """
@@ -37,15 +37,16 @@ class BaseOGD(ABC):
         """
         Computes the loss incurred by theta.
         """
-        return ((theta @ x_t - y_t) ** 2)[0]
+        return float((theta @ x_t - y_t) ** 2)
 
-    def euclidian_projection(self, theta: np.ndarray) -> np.ndarray:
+    @staticmethod
+    def euclidian_projection(theta: np.ndarray, radius: float) -> np.ndarray:
         """
         Euclidian projection onto a sphere of given radius.
         """
         theta_norm = np.linalg.norm(theta)
-        if theta_norm > self.radius:
-            return theta / theta_norm
+        if theta_norm > radius:
+            return theta / theta_norm * radius
         return theta
 
     @abstractmethod
@@ -99,7 +100,8 @@ class OGDWithoutGradient(BaseOGD):
 
         return (
             self.euclidian_projection(
-                theta_hat - self.dim * self.eta / self.delta * loss * direction
+                theta_hat - self.dim * self.eta / self.delta * loss * direction,
+                1 - self.delta
             ),
             loss - self.compute_loss(self.theta_star, x_t, y_t),
         )
@@ -123,7 +125,8 @@ class OGDWithGradient(BaseOGD):
         loss = self.compute_loss(theta_hat, x_t, y_t)
         return (
             self.euclidian_projection(
-                theta_hat - self.eta * 2 * x_t * (theta_hat @ x_t - y_t)
+                theta_hat - self.eta * 2 * x_t * (theta_hat @ x_t - y_t),
+                1
             ),
             loss - self.compute_loss(self.theta_star, x_t, y_t),
         )
