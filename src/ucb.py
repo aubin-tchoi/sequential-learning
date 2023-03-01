@@ -28,8 +28,8 @@ class UCB:
         reward = self.env.observe_gaussian(selected_arm)
         # updating the mean and the number of visits
         empirical_means[selected_arm] = (
-            empirical_means[selected_arm] * (time - 1) + reward
-        ) / time
+            empirical_means[selected_arm] * n_visits[selected_arm] + reward
+        ) / (n_visits[selected_arm] + 1)
         n_visits[selected_arm] += 1
 
         return reward
