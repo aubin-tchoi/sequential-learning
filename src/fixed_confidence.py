@@ -20,7 +20,7 @@ class BaseAlgo(ABC):
         time: int,
     ) -> bool:
         best_arm = empirical_means.argmin()
-        mask = np.ones(self.n_arms)
+        mask = np.ones(self.n_arms, dtype=int)
         mask[best_arm] = 0
         return (
             (empirical_means[best_arm] - empirical_means[mask]) ** 2
