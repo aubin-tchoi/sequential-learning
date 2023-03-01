@@ -19,7 +19,7 @@ class BaseAlgo(ABC):
         n_visits: np.ndarray,
         time: int,
     ) -> bool:
-        best_arm = empirical_means.argmin()
+        best_arm = empirical_means.argmax()
         mask = np.ones(self.n_arms, dtype=int)
         mask[best_arm] = 0
         return (
