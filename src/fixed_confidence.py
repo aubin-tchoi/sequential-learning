@@ -63,8 +63,8 @@ class TopTwo(BaseAlgo):
         self,
         confidence_level: float,
         env: StochasticBandit,
+        leader_selection: Literal["TTUCB", "EB-TC"],
         beta: float = 0.5,
-        leader_selection: Literal["TTUCB", "EB-TC"] = "TTUCB",
     ):
         super(TopTwo, self).__init__(confidence_level, env)
         self.beta = beta
