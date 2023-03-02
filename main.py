@@ -255,7 +255,7 @@ def run_fixed_confidence(
     )
     plt.figure()
     plt.boxplot([ucb_time, uniform_time], labels=["UCB", "Uniform sampling"])
-    plt.xlabel("Stopping time")
+    plt.ylabel("Stopping time")
     plt.legend()
     plt.title("Comparison of two fixed confidence algorithms")
     plt.show()
@@ -265,7 +265,7 @@ def run_fixed_confidence(
         [ucb_time, uniform_time, ttucb_time, ebtc_time],
         labels=["UCB", "Uniform sampling", "TTUCB", "EB-TC"],
     )
-    plt.xlabel("Stopping time")
+    plt.ylabel("Stopping time")
     plt.legend()
     plt.title("Comparison of four fixed confidence algorithms")
     plt.show()
