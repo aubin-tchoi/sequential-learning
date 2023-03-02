@@ -20,8 +20,8 @@ class BaseAlgo(ABC):
         time: int,
     ) -> bool:
         best_arm = empirical_means.argmax()
-        mask = np.ones(self.n_arms, dtype=int)
-        mask[best_arm] = 0
+        mask = np.ones(self.n_arms, dtype=bool)
+        mask[best_arm] = False
         return (
             (empirical_means[best_arm] - empirical_means[mask]) ** 2
             / (1 / n_visits[best_arm] + 1 / n_visits[mask])
@@ -92,8 +92,8 @@ class TopTwo(BaseAlgo):
                 else empirical_means.argmax()
             )
 
-            mask = np.ones(self.n_arms)
-            mask[leader] = 0
+            mask = np.ones(self.n_arms, dtype=bool)
+            mask[leader] = False
             challenger = (
                 (empirical_means[leader] - empirical_means[mask]) ** 2
                 / (1 / n_visits[leader] + 1 / n_visits[mask])
