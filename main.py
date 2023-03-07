@@ -1,5 +1,4 @@
 import argparse
-import json
 from collections import defaultdict
 from typing import Tuple, List
 
@@ -180,6 +179,13 @@ def run_ogd_over_dims(
     plt.show()
 
 
+def compute_binomial_ci(mean: float, n_trials: int) -> Tuple[float, float]:
+    return (
+        mean - 1.96 * np.sqrt(mean * (1 - mean) / n_trials),
+        mean + 1.96 * np.sqrt(mean * (1 - mean) / n_trials),
+    )
+
+
 @timeit
 def run_fixed_budget(
     arm_means: List[float], stopping_times: List[int], n_trials: int
@@ -195,14 +201,6 @@ def run_fixed_budget(
             successive_rejects[tau][SuccessiveRejects(tau, bandit)()] += 1
         timer(f"Time spent on horizon {tau}")
 
-    print(" --- Uniform sampling ---\n")
-    for tau, uni in uniform.items():
-        print(f"T = {tau}", json.dumps(dict(uni), indent=4))
-
-    print("\n\n --- Successive rejects ---\n")
-    for tau, suc in successive_rejects.items():
-        print(f"T = {tau}", json.dumps(dict(suc), indent=4))
-
     print(
         f"\nSuccess rate of the uniform sampling:   "
         f"{', '.join(f'T = {tau}: {uniform[tau][0] / n_trials * 100:>5.2f}%' for tau in stopping_times)}"
@@ -211,6 +209,22 @@ def run_fixed_budget(
         f"Success rate of the successive rejects: "
         f"{', '.join(f'T = {tau}: {successive_rejects[tau][0] / n_trials * 100:>5.2f}%' for tau in stopping_times)}"
     )
+
+    uniform_means = [[uniform[tau][0] / n_trials] for tau in stopping_times]
+    sr_means = [[successive_rejects[tau][0] / n_trials] for tau in stopping_times]
+    plt.figure(figsize=(14, 14))
+    plt.boxplot(
+        uniform_means + sr_means,
+        labels=[f"Uniform, tau = {tau}" for tau in stopping_times]
+        + [f"SR, tau = {tau}" for tau in stopping_times],
+        conf_intervals=[
+            compute_binomial_ci(mean[0], n_trials) for mean in uniform_means
+        ]
+        + [compute_binomial_ci(mean[0], n_trials) for mean in uniform_means],
+    )
+    plt.ylabel("Error probability")
+    plt.title("Comparison of Successive Rejects and Uniform sampling")
+    plt.show()
 
 
 @timeit
