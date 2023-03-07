@@ -9,10 +9,10 @@ import numpy as np
 
 
 class BaseOGD(ABC):
-    def __init__(self, dim: int, delta: float, eta: float):
+    def __init__(self, dim: int, eta: float):
         self.dim = dim
         self.theta_star = 1 / (np.arange(dim) + 1) / 2
-        self.delta, self.eta = delta, eta
+        self.eta = eta
 
     def sample_direction(self) -> np.ndarray:
         """
@@ -81,6 +81,10 @@ class BaseOGD(ABC):
 
 
 class OGDWithoutGradient(BaseOGD):
+    def __init__(self, dim: int, delta: float, eta: float):
+        super(OGDWithoutGradient, self).__init__(dim, eta)
+        self.delta = delta
+
     def update_rule(
         self,
         theta_hat: np.ndarray,
@@ -101,7 +105,7 @@ class OGDWithoutGradient(BaseOGD):
         return (
             self.euclidian_projection(
                 theta_hat - self.dim * self.eta / self.delta * loss * direction,
-                1 - self.delta
+                1 - self.delta,
             ),
             loss - self.compute_loss(self.theta_star, x_t, y_t),
         )
@@ -125,8 +129,7 @@ class OGDWithGradient(BaseOGD):
         loss = self.compute_loss(theta_hat, x_t, y_t)
         return (
             self.euclidian_projection(
-                theta_hat - self.eta * 2 * x_t * (theta_hat @ x_t - y_t),
-                1
+                theta_hat - self.eta * 2 * x_t * (theta_hat @ x_t - y_t), 1
             ),
             loss - self.compute_loss(self.theta_star, x_t, y_t),
         )

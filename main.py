@@ -56,12 +56,21 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def compute_constants(
+def compute_ogd_wo_grad_constants(
     dim: int, horizon: int, lipschitz_constant: float, diameter: float
 ) -> Tuple[float, float]:
     delta = horizon ** (-1 / 4) * np.sqrt(dim * diameter / (3 * lipschitz_constant))
     eta = horizon ** (-3 / 4) * np.sqrt(dim / (3 * lipschitz_constant * dim)) * diameter
+
     return delta, eta
+
+
+def compute_ogd_w_grad_constants(
+    horizon: int, lipschitz_constant: float, diameter: float
+) -> float:
+    eta = diameter / (lipschitz_constant * np.sqrt(horizon))
+
+    return eta
 
 
 @timeit
@@ -73,15 +82,19 @@ def run_ogd_comparison(
     n_trials: int,
     log_plots: bool,
 ) -> None:
-    delta, eta = compute_constants(dim, horizon, lipschitz_constant, diameter)
+    delta, eta = compute_ogd_wo_grad_constants(
+        dim, horizon, lipschitz_constant, diameter
+    )
+    eta_ogd = compute_ogd_w_grad_constants(horizon, lipschitz_constant, diameter)
+
     wo_grad, w_grad = np.zeros((n_trials, horizon)), np.zeros((n_trials, horizon))
     for trial in range(n_trials):
         wo_grad[trial] = OGDWithoutGradient(
             dim=dim, delta=delta, eta=eta
         ).play_full_horizon(horizon=horizon)
-        w_grad[trial] = OGDWithGradient(
-            dim=dim, delta=delta, eta=eta
-        ).play_full_horizon(horizon=horizon)
+        w_grad[trial] = OGDWithGradient(dim=dim, eta=eta_ogd).play_full_horizon(
+            horizon=horizon
+        )
 
     wo_grad_mean, wo_grad_std = wo_grad.mean(axis=0), wo_grad.std(axis=0)
     w_grad_mean, w_grad_std = w_grad.mean(axis=0), w_grad.std(axis=0)
@@ -121,18 +134,22 @@ def run_ogd_over_dims(
     diameter: float,
     n_trials: int,
 ) -> None:
+    eta_ogd = compute_ogd_w_grad_constants(horizon, lipschitz_constant, diameter)
+
     wo_grad = np.zeros((n_trials, dims.shape[0]))
     w_grad = np.zeros((n_trials, dims.shape[0]))
 
     for i, dim in enumerate(dims):
-        delta, eta = compute_constants(dim, horizon, lipschitz_constant, diameter)
+        delta, eta = compute_ogd_wo_grad_constants(
+            dim, horizon, lipschitz_constant, diameter
+        )
         for trial in range(n_trials):
             wo_grad[trial][i] = OGDWithoutGradient(
                 dim=dim, delta=delta, eta=eta
             ).play_full_horizon(horizon=horizon)[-1]
-            w_grad[trial][i] = OGDWithGradient(
-                dim=dim, delta=delta, eta=eta
-            ).play_full_horizon(horizon=horizon)[-1]
+            w_grad[trial][i] = OGDWithGradient(dim=dim, eta=eta_ogd).play_full_horizon(
+                horizon=horizon
+            )[-1]
 
     wo_grad_mean, wo_grad_std = wo_grad.mean(axis=0), wo_grad.std(axis=0)
     w_grad_mean, w_grad_std = w_grad.mean(axis=0), w_grad.std(axis=0)
