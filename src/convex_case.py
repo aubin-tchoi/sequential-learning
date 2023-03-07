@@ -22,12 +22,12 @@ class BaseOGD(ABC):
 
         return direction / np.linalg.norm(direction)
 
-    def sample_loss(self, sigma: float = 0.1) -> Tuple[np.ndarray, np.ndarray]:
+    def sample_loss(self, sigma_square: float = 0.1) -> Tuple[np.ndarray, np.ndarray]:
         """
         Sample elements that constitute a loss.
         """
         x_t = np.random.randn(self.dim)
-        epsilon_t = np.random.randn(1) * sigma
+        epsilon_t = np.random.randn(1) * np.sqrt(sigma_square)
         y_t = self.theta_star @ x_t + epsilon_t
 
         return x_t, y_t
