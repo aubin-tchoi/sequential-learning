@@ -90,16 +90,18 @@ def run_ogd_comparison(
     plt.plot(wo_grad_mean, label="OGD without gradient")
     plt.fill_between(
         np.arange(horizon),
-        wo_grad_mean - wo_grad_std,
-        wo_grad_mean + wo_grad_std,
+        wo_grad_mean - 1.96 * wo_grad_std / np.sqrt(n_trials),
+        wo_grad_mean + 1.96 * wo_grad_std / np.sqrt(n_trials),
         alpha=0.5,
+        label="95% CI",
     )
     plt.plot(w_grad_mean, label="OGD with gradient")
     plt.fill_between(
         np.arange(horizon),
-        w_grad_mean - w_grad_std,
-        w_grad_mean + w_grad_std,
+        w_grad_mean - 1.96 * w_grad_std / np.sqrt(n_trials),
+        w_grad_mean + 1.96 * w_grad_std / np.sqrt(n_trials),
         alpha=0.5,
+        label="95% CI",
     )
     if log_plots:
         plt.xscale("log")
@@ -139,11 +141,19 @@ def run_ogd_over_dims(
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 7))
     ax1.plot(dims, wo_grad_mean, label="OGD without gradient")
     ax1.fill_between(
-        dims, wo_grad_mean - wo_grad_std, wo_grad_mean + wo_grad_std, alpha=0.5
+        dims,
+        wo_grad_mean - 1.96 * wo_grad_std / np.sqrt(n_trials),
+        wo_grad_mean + 1.96 * wo_grad_std / np.sqrt(n_trials),
+        alpha=0.5,
+        label="95% CI",
     )
     ax2.plot(dims, w_grad_mean, label="OGD with gradient")
     ax2.fill_between(
-        dims, w_grad_mean - w_grad_std, w_grad_mean + w_grad_std, alpha=0.5
+        dims,
+        w_grad_mean - 1.96 * w_grad_std / np.sqrt(n_trials),
+        w_grad_mean + 1.96 * w_grad_std / np.sqrt(n_trials),
+        alpha=0.5,
+        label="95% CI",
     )
 
     ax1.set(xlabel="$d$", ylabel=r"$\mathbb{E}[R_T]$")
