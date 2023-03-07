@@ -49,16 +49,16 @@ class UniformSamplingFixedConfidence(BaseAlgo, UCB):
 
         while not self.stopping_rule(empirical_means, n_visits, time):
             arm = time % self.n_arms
-            empirical_means[arm] += (
-                empirical_means[arm] * (time - 1) + self.env.observe_gaussian(arm)
-            ) / time
+            empirical_means[arm] = (
+                empirical_means[arm] * n_visits[arm] + self.env.observe_gaussian(arm)
+            ) / (n_visits[arm] + 1)
             n_visits[arm] += 1
             time += 1
 
         return time, int(empirical_means.argmax())
 
 
-class TopTwo(BaseAlgo):
+class TopTwo(BaseAlgo, UCB):
     def __init__(
         self,
         confidence_level: float,
@@ -74,14 +74,7 @@ class TopTwo(BaseAlgo):
             raise ValueError("Incorrect value for leader selection rule.")
 
     def __call__(self) -> Tuple[int, int]:
-        empirical_means = np.zeros(self.n_arms)
-
-        # pulling each arm once
-        for arm in range(self.n_arms):
-            empirical_means[arm] += self.env.observe_gaussian(arm)
-
-        time = self.n_arms
-        n_visits = np.ones(self.n_arms)
+        empirical_means, n_visits, time = self.pull_each_arm_once()
 
         while not self.stopping_rule(empirical_means, n_visits, time):
             time += 1
@@ -104,9 +97,9 @@ class TopTwo(BaseAlgo):
 
             # updating the mean and the number of visits
             empirical_means[selected_arm] = (
-                empirical_means[selected_arm] * (time - 1)
+                empirical_means[selected_arm] * n_visits[selected_arm]
                 + self.env.observe_gaussian(selected_arm)
-            ) / time
+            ) / (n_visits[selected_arm] + 1)
             n_visits[selected_arm] += 1
 
         return time, int(empirical_means.argmax())
