@@ -157,17 +157,17 @@ def run_fixed_budget(
 
     uniform_means = [[uniform[tau][0] / n_trials] for tau in stopping_times]
     sr_means = [[successive_rejects[tau][0] / n_trials] for tau in stopping_times]
-    plt.figure(figsize=(14, 14))
+    plt.figure(figsize=(10, 10))
     plt.boxplot(
         uniform_means + sr_means,
-        labels=[f"Uniform, tau = {tau}" for tau in stopping_times]
+        labels=[f"UNI, tau = {tau}" for tau in stopping_times]
         + [f"SR, tau = {tau}" for tau in stopping_times],
         conf_intervals=[
             compute_binomial_ci(mean[0], n_trials) for mean in uniform_means
         ]
         + [compute_binomial_ci(mean[0], n_trials) for mean in uniform_means],
     )
-    plt.ylabel("Error probability")
+    plt.ylabel(r"$\mathbb{P}_\nu[\hat{k} \neq k^*]$")
     plt.title("Comparison of Successive Rejects and Uniform sampling")
     plt.show()
 
@@ -185,16 +185,18 @@ def run_ucb(arm_means: List[float], horizon: int, n_trials: int) -> None:
     rewards_std = cumulative_rewards.std(axis=0)
 
     plt.figure(figsize=(10, 10))
-    plt.plot(mean_regret)
+    plt.plot(mean_regret, label=r"$\mathbb{E}[R_t]$")
     plt.fill_between(
         np.arange(horizon),
-        mean_regret - rewards_std,
-        mean_regret + rewards_std,
+        mean_regret - 1.96 * rewards_std / np.sqrt(n_trials),
+        mean_regret + 1.96 * rewards_std / np.sqrt(n_trials),
         alpha=0.5,
+        label="95% CI"
     )
     plt.title("UCB regret")
     plt.ylabel(r"$\mathbb{E}[R_t]$")
     plt.xlabel("$t$")
+    plt.legend()
     plt.show()
 
 
