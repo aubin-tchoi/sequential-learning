@@ -1,4 +1,3 @@
-from collections import defaultdict
 from typing import List
 
 import matplotlib.pyplot as plt
@@ -136,38 +135,49 @@ def run_fixed_budget(
     arm_means: List[float], stopping_times: List[int], n_trials: int
 ) -> None:
     bandit = StochasticBandit(arm_means)
-    uniform = defaultdict(lambda: defaultdict(int))
-    successive_rejects = defaultdict(lambda: defaultdict(int))
+    best_arm = np.argmax(arm_means)
+
+    uniform = np.zeros((len(stopping_times), n_trials))
+    successive_rejects = np.zeros((len(stopping_times), n_trials))
 
     timer = checkpoint()
-    for tau in stopping_times:
-        for _ in range(n_trials):
-            uniform[tau][UniformSamplingFixedBudget(tau, bandit)()] += 1
-            successive_rejects[tau][SuccessiveRejects(tau, bandit)()] += 1
+    for tau_i, tau in enumerate(stopping_times):
+        for trial in range(n_trials):
+            uniform[tau_i][trial] = (
+                UniformSamplingFixedBudget(tau, bandit)() == best_arm
+            )
+            successive_rejects[tau_i][trial] = (
+                SuccessiveRejects(tau, bandit)() == best_arm
+            )
         timer(f"Time spent on horizon {tau}")
 
+    uniform_means = uniform.mean(axis=1)
+    sr_means = successive_rejects.mean(axis=1)
+
     print(
-        f"\nSuccess rate of the uniform sampling:   "
-        f"{', '.join(f'T = {tau}: {uniform[tau][0] / n_trials * 100:>5.2f}%' for tau in stopping_times)}"
-    )
-    print(
-        f"Success rate of the successive rejects: "
-        f"{', '.join(f'T = {tau}: {successive_rejects[tau][0] / n_trials * 100:>5.2f}%' for tau in stopping_times)}"
+        f"\nStopping times: {', '.join(str(tau) for tau in stopping_times)}\n"
+        f"Success rate of the uniform sampling:   {str(uniform_means)}\n"
+        f"Success rate of the successive rejects: {str(sr_means)}"
     )
 
-    uniform_means = [[uniform[tau][0] / n_trials] for tau in stopping_times]
-    sr_means = [[successive_rejects[tau][0] / n_trials] for tau in stopping_times]
     plt.figure(figsize=(10, 10))
-    plt.boxplot(
-        uniform_means + sr_means,
-        labels=[f"UNI, tau = {tau}" for tau in stopping_times]
-        + [f"SR, tau = {tau}" for tau in stopping_times],
-        conf_intervals=[
-            compute_binomial_ci(mean[0], n_trials) for mean in uniform_means
-        ]
-        + [compute_binomial_ci(mean[0], n_trials) for mean in uniform_means],
+    plt.errorbar(
+        uniform_means,
+        stopping_times,
+        xerr=compute_binomial_ci(uniform_means, n_trials),
+        label="Uniform Sampling",
+        fmt="o",
     )
-    plt.ylabel(r"$\mathbb{P}_\nu[\hat{k} \neq k^*]$")
+    plt.errorbar(
+        sr_means,
+        stopping_times,
+        xerr=compute_binomial_ci(sr_means, n_trials),
+        label="Successive Rejects",
+        fmt="o",
+    )
+    plt.xlabel(r"$\mathbb{P}_\nu[\hat{k} \neq k^*]$")
+    plt.ylabel(r"$\tau$")
+    plt.legend()
     plt.title("Comparison of Successive Rejects and Uniform sampling")
     plt.show()
 
@@ -191,7 +201,7 @@ def run_ucb(arm_means: List[float], horizon: int, n_trials: int) -> None:
         mean_regret - 1.96 * rewards_std / np.sqrt(n_trials),
         mean_regret + 1.96 * rewards_std / np.sqrt(n_trials),
         alpha=0.5,
-        label="95% CI"
+        label="95% CI",
     )
     plt.title("UCB regret")
     plt.ylabel(r"$\mathbb{E}[R_t]$")

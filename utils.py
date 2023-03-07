@@ -1,14 +1,11 @@
 import argparse
-from typing import Tuple
+from typing import Tuple, Union
 
 import numpy as np
 
 
-def compute_binomial_ci(mean: float, n_trials: int) -> Tuple[float, float]:
-    return (
-        mean - 1.96 * np.sqrt(mean * (1 - mean) / n_trials),
-        mean + 1.96 * np.sqrt(mean * (1 - mean) / n_trials),
-    )
+def compute_binomial_ci(mean: Union[float, np.ndarray], n_trials: int) -> Union[float, np.ndarray]:
+    return 1.96 * np.sqrt(mean * (1 - mean) / n_trials)
 
 
 def compute_ogd_wo_grad_constants(
