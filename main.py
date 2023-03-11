@@ -1,4 +1,5 @@
 import numpy as np
+import seaborn as sns
 
 from experiments import (
     run_ogd_comparison,
@@ -10,6 +11,7 @@ from experiments import (
 from utils import parse_args
 
 if __name__ == "__main__":
+    sns.set_theme()
     args = parse_args()
 
     if not args.skip_ogd:
@@ -18,7 +20,7 @@ if __name__ == "__main__":
             horizon=1000,
             lipschitz_constant=5,
             diameter=2,
-            n_trials=500,
+            n_trials=100,
             log_plots=args.log_plots,
         )
         run_ogd_over_dims(
@@ -46,4 +48,4 @@ if __name__ == "__main__":
         for _ in range(7):
             means.append(0.3)
         assert len(means) == 10, "Incorrect number of arms"
-        run_fixed_confidence(confidence_level=0.01, arm_means=means, n_trials=1)
+        run_fixed_confidence(confidence_level=0.01, arm_means=means, n_trials=200)
