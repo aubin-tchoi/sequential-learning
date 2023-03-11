@@ -183,7 +183,12 @@ def run_fixed_budget(
 
 
 @timeit
-def run_ucb(arm_means: List[float], horizon: int, n_trials: int) -> None:
+def run_ucb(
+    arm_means: List[float],
+    horizon: int,
+    n_trials: int,
+    plot_bound: bool = True,
+) -> None:
     cumulative_rewards = np.zeros((n_trials, horizon))
     bandit = StochasticBandit(arm_means)
 
@@ -196,6 +201,15 @@ def run_ucb(arm_means: List[float], horizon: int, n_trials: int) -> None:
 
     plt.figure(figsize=(10, 10))
     plt.plot(mean_regret, label=r"$\mathbb{E}[R_t]$")
+    if plot_bound:
+        plt.plot(
+            np.sqrt(
+                len(arm_means)
+                * np.arange(horizon)
+                * (np.log(np.arange(horizon) + 1e-3))
+            ),
+            label=r"$\sqrt{KT\log{T}}$",
+        )
     plt.fill_between(
         np.arange(horizon),
         mean_regret - 1.96 * rewards_std / np.sqrt(n_trials),
