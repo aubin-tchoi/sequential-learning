@@ -87,10 +87,12 @@ class TopTwo(BaseAlgo, UCB):
 
             mask = np.ones(self.n_arms, dtype=bool)
             mask[leader] = False
-            challenger = (
-                (empirical_means[leader] - empirical_means[mask]) ** 2
-                / (1 / n_visits[leader] + 1 / n_visits[mask])
-            ).argmin()
+            challenger = np.arange(self.n_arms)[mask][
+                (
+                    (empirical_means[leader] - empirical_means[mask]) ** 2
+                    / (1 / n_visits[leader] + 1 / n_visits[mask])
+                ).argmin()
+            ]
 
             # sampling the leader with probability beta
             selected_arm = leader if np.random.binomial(1, self.beta) else challenger
