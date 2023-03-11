@@ -73,10 +73,13 @@ class TopTwo(BaseAlgo, UCB):
         if leader_selection.upper() not in ["TTUCB", "EB-TC"]:
             raise ValueError("Incorrect value for leader selection rule.")
 
-    def __call__(self) -> Tuple[int, int]:
+    def __call__(self, max_iter: int = 1e5) -> Tuple[int, int]:
         empirical_means, n_visits, time = self.pull_each_arm_once()
 
         while not self.stopping_rule(empirical_means, n_visits, time):
+            if time >= max_iter:
+                print(f"\nMaximum iteration number reached with {self.leader_selection}.")
+                break
             time += 1
             # arm selected according to either UCB or empirical means observation
             leader = (
