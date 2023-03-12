@@ -266,19 +266,40 @@ def run_fixed_confidence(
     print(
         f"Mean error rate of EB-TC:            {ebtc_error.mean() * 100:.2f}%, std: {ebtc_error.std():2f}"
     )
-    plt.figure()
+    plt.figure(figsize=(10, 10))
     plt.boxplot([ucb_time, uniform_time], labels=["UCB", "Uniform sampling"])
     plt.ylabel("Stopping time")
-    plt.legend()
     plt.title("Comparison of two fixed confidence algorithms")
     plt.show()
 
-    plt.figure()
+    plt.figure(figsize=(10, 10))
     plt.boxplot(
         [ucb_time, uniform_time, ttucb_time, ebtc_time],
         labels=["UCB", "Uniform sampling", "TTUCB", "EB-TC"],
     )
     plt.ylabel("Stopping time")
-    plt.legend()
+    plt.title("Comparison of four fixed confidence algorithms")
+    plt.show()
+
+    fig, axes = plt.subplots(2, 2, figsize=(20, 20))
+    axes[0][0].boxplot(
+        [ucb_time],
+        labels=["UCB"],
+    )
+    axes[0][1].boxplot(
+        [uniform_time],
+        labels=["Uniform sampling"],
+    )
+    axes[1][0].boxplot(
+        [ttucb_time],
+        labels=["TTUCB"],
+    )
+    axes[1][1].boxplot(
+        [ebtc_time],
+        labels=["EB-TC"],
+    )
+    for axe in axes:
+        for ax in axe:
+            ax.set(ylabel="Stopping time")
     plt.title("Comparison of four fixed confidence algorithms")
     plt.show()
