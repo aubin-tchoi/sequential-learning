@@ -2,6 +2,7 @@ from typing import List
 
 import matplotlib.pyplot as plt
 import numpy as np
+from tqdm import trange, tqdm
 
 from src import (
     OGDWithoutGradient,
@@ -13,7 +14,6 @@ from src import (
     UniformSamplingFixedConfidence,
     TopTwo,
     timeit,
-    checkpoint,
     UCB,
 )
 from utils import (
@@ -38,7 +38,7 @@ def run_ogd_comparison(
     eta_ogd = compute_ogd_w_grad_constants(horizon, lipschitz_constant, diameter)
 
     wo_grad, w_grad = np.zeros((n_trials, horizon)), np.zeros((n_trials, horizon))
-    for trial in range(n_trials):
+    for trial in trange(n_trials, delay=0.1):
         wo_grad[trial] = OGDWithoutGradient(
             dim=dim, delta=delta, eta=eta
         ).play_full_horizon(horizon=horizon)
@@ -89,7 +89,9 @@ def run_ogd_over_dims(
     wo_grad = np.zeros((n_trials, dims.shape[0]))
     w_grad = np.zeros((n_trials, dims.shape[0]))
 
-    for i, dim in enumerate(dims):
+    for i, dim in tqdm(
+        enumerate(dims), total=dims.shape[0], desc="Dimensions", delay=1
+    ):
         delta, eta = compute_ogd_wo_grad_constants(
             dim, horizon, lipschitz_constant, diameter
         )
@@ -140,8 +142,12 @@ def run_fixed_budget(
     uniform = np.zeros((len(stopping_times), n_trials))
     successive_rejects = np.zeros((len(stopping_times), n_trials))
 
-    timer = checkpoint()
-    for tau_i, tau in enumerate(stopping_times):
+    for tau_i, tau in tqdm(
+        enumerate(stopping_times),
+        total=len(stopping_times),
+        desc="Stopping times",
+        delay=1,
+    ):
         for trial in range(n_trials):
             uniform[tau_i][trial] = (
                 UniformSamplingFixedBudget(tau, bandit)() == best_arm
@@ -149,7 +155,6 @@ def run_fixed_budget(
             successive_rejects[tau_i][trial] = (
                 SuccessiveRejects(tau, bandit)() == best_arm
             )
-        timer(f"Time spent on horizon {tau}")
 
     uniform_means = uniform.mean(axis=1)
     sr_means = successive_rejects.mean(axis=1)
@@ -192,7 +197,7 @@ def run_ucb(
     cumulative_rewards = np.zeros((n_trials, horizon))
     bandit = StochasticBandit(arm_means)
 
-    for trial in range(n_trials):
+    for trial in trange(n_trials, delay=0.1):
         cumulative_rewards[trial] = UCB(bandit)(horizon)
     mean_regret = (
         max(arm_means) * np.ones(horizon)
@@ -235,7 +240,7 @@ def run_fixed_confidence(
 
     bandit = StochasticBandit(arm_means)
 
-    for trial in range(n_trials):
+    for trial in trange(n_trials, delay=0.1):
         uniform_time[trial], uniform_error[trial] = UniformSamplingFixedConfidence(
             confidence_level=confidence_level, env=bandit
         )()

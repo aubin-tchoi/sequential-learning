@@ -15,6 +15,7 @@ if __name__ == "__main__":
     args = parse_args()
 
     if not args.skip_ogd:
+        print("\n ---------- OGD ----------")
         run_ogd_comparison(
             dim=2,
             horizon=1000,
@@ -32,11 +33,13 @@ if __name__ == "__main__":
         )
 
     if not args.skip_fixed_budget:
+        print("\n ------ Fixed budget ------")
         means = [0.4 for _ in range(19)]
         means.insert(0, 0.5)
         run_fixed_budget(arm_means=means, stopping_times=[100, 200, 500], n_trials=5000)
 
     if not args.skip_ucb:
+        print("\n ---------- UCB ----------")
         means = [0.5, 0.4, 0.4]
         for _ in range(7):
             means.append(0.3)
@@ -44,6 +47,7 @@ if __name__ == "__main__":
         run_ucb(arm_means=means, horizon=10000, n_trials=100)
 
     if not args.skip_fixed_confidence:
+        print("\n ---- Fixed confidence ----")
         means = [0.5, 0.4, 0.4]
         for _ in range(7):
             means.append(0.3)
