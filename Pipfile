@@ -21,6 +21,10 @@ six = "==1.16.0"
 tqdm = "==4.65.0"
 
 [dev-packages]
+mypy = "==1.8.0"
+black = "==23.12.1"
+ruff = "==0.1.9"
+isort = "==5.13.2"
 
 [requires]
 python_version = "3.10"

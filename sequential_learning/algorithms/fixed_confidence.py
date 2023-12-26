@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Tuple, Literal
+from typing import Literal, Tuple
 
 import numpy as np
 
@@ -78,7 +78,9 @@ class TopTwo(BaseAlgo, UCB):
 
         while not self.stopping_rule(empirical_means, n_visits, time):
             if time >= max_iter:
-                print(f"\nMaximum iteration number reached with {self.leader_selection}.")
+                print(
+                    f"\nMaximum iteration number reached with {self.leader_selection}."
+                )
                 break
             time += 1
             # arm selected according to either UCB or empirical means observation

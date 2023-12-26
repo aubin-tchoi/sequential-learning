@@ -1,18 +1,54 @@
+import argparse
+
 import numpy as np
 import seaborn as sns
 
-from experiments import (
+from scripts.runners import (
+    run_fixed_budget,
+    run_fixed_confidence,
     run_ogd_comparison,
     run_ogd_over_dims,
-    run_fixed_budget,
     run_ucb,
-    run_fixed_confidence,
 )
-from utils import parse_args
 
-if __name__ == "__main__":
+
+def parse_args() -> argparse.Namespace:
+    """
+    Parses the command line arguments and produces the help message.
+    """
+    parser = argparse.ArgumentParser(description="Surface reconstruction")
+
+    parser.add_argument(
+        "--skip_ogd",
+        action="store_true",
+        help="Skips the execution of the two OGD algorithms",
+    )
+    parser.add_argument(
+        "--skip_fixed_budget",
+        action="store_true",
+        help="Skips the execution of the fixed budget algorithms",
+    )
+    parser.add_argument(
+        "--skip_ucb",
+        action="store_true",
+        help="Skips the execution of the UCB algorithm",
+    )
+    parser.add_argument(
+        "--skip_fixed_confidence",
+        action="store_true",
+        help="Skips the execution of the two fixed confidence algorithms",
+    )
+    parser.add_argument(
+        "--log_plots",
+        action="store_true",
+        help="Plots the regret in log log scale",
+    )
+
+    return parser.parse_args()
+
+
+def main(args: argparse.Namespace = parse_args()) -> None:
     sns.set_theme()
-    args = parse_args()
 
     if not args.skip_ogd:
         print("\n ---------- OGD ----------")
@@ -53,3 +89,7 @@ if __name__ == "__main__":
             means.append(0.3)
         assert len(means) == 10, "Incorrect number of arms"
         run_fixed_confidence(confidence_level=0.01, arm_means=means, n_trials=200)
+
+
+if __name__ == "__main__":
+    main()

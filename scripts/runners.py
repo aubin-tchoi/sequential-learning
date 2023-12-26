@@ -2,24 +2,22 @@ from typing import List
 
 import matplotlib.pyplot as plt
 import numpy as np
-from tqdm import trange, tqdm
+from tqdm import tqdm, trange
 
-from src import (
-    OGDWithoutGradient,
+from sequential_learning import (
+    UCB,
     OGDWithGradient,
+    OGDWithoutGradient,
     StochasticBandit,
     SuccessiveRejects,
-    UniformSamplingFixedBudget,
-    UCBFixedConfidence,
-    UniformSamplingFixedConfidence,
     TopTwo,
-    timeit,
-    UCB,
-)
-from utils import (
+    UCBFixedConfidence,
+    UniformSamplingFixedBudget,
+    UniformSamplingFixedConfidence,
     compute_binomial_ci,
-    compute_ogd_wo_grad_constants,
     compute_ogd_w_grad_constants,
+    compute_ogd_wo_grad_constants,
+    timeit,
 )
 
 
